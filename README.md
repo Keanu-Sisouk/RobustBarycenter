@@ -4,7 +4,7 @@ This repository provides the code used to retrieve the running time results in o
 
 To install the required packages:
 ```bash
-    pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 # Get the result
@@ -14,12 +14,12 @@ Beware that the experiments were run using Pytorch on an NVIDA GPU, so associate
 
 The first file `running_time_B_analytic.py` gives the two running times when using the arithmetic mean:
 ```bash
-    python3 running_time_B_analytic.py
+python3 running_time_B_analytic.py
 ```
 
 The second file `running_time_B.py` gives the two running times when using Pytorch optimizer to compute the ground barycenter:
 ```bash
-    python3 running_time_B.py
+python3 running_time_B.py
 ```
 
 # Credits
