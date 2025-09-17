@@ -170,14 +170,6 @@ def C(x, y, order_p, order_q):
     return out
 
 
-
-# X_init = torch.rand(n, d, device=device, dtype=torch.double)
-# %% fixed-point for (p, q) = (1.5, 1.5)
-p, q = 1.5, 1.5
-# K = 4
-# cost_list = [lambda x, y: p_norm_q_cost_matrix(x, y, p, q)] * K
-its = 10
-
 K_number = [4,6]
 for K in K_number:
     s = 0
