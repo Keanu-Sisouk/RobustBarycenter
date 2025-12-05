@@ -44,7 +44,11 @@ for Y in Y_list:
 m_list = [Y.shape[0] for Y in Y_list]
 b_list = TT([ot.unif(m) for m in m_list], device = device)
 # a = TT(ot.unif(n), device = device)
-
+Y_list_new = []
+for Y in Y_list:
+    Y_list_new.append(Y[Y[:,1]-Y[:,0] > 0.05*(Y[0,1]-Y[0,0])])
+m_list = [Y.shape[0] for Y in Y_list]
+b_list = TT([ot.unif(m) for m in m_list], device = device)
 
 def p_norm_q_cost_matrix(u, v, order_p, order_q):
     dist= torch.sum(torch.abs(u[:, None, :] - v[None, :, :])**order_p, axis=-1)**(order_q / order_p)
@@ -170,39 +174,40 @@ def C(x, y, order_p, order_q):
     return out
 
 
-K_number = [4,6]
-for K in K_number:
-    s = 0
-    if K == 6:
-        s = 6
-    else:
-        s = 8
+for q in [2,1.8,1.6,1.4,1.2]:
+    K_number = [4,6,8,10,12]
+    for K in K_number:
+        s = 12 - K
+        # if K == 6:
+        #     s = 6
+        # else:
+        #     s = 8
 
-    cluster_points = [Y_list[j].clone().to(device) for j in range(s,12)]
+        cluster_points = [Y_list_new[j].clone().to(device) for j in range(s,12)]
 
-    cluster_points_temp = [x.clone().to(device) for x in cluster_points]
-    cost_list = [lambda x, y: p_norm_q_cost_matrix(x, y, 2, 2)] * K
-    for i in range(K):
-        x = cluster_points_temp[i].clone().to(device)
-        # print(x.shape)
-        for j in range(K):
-            if i == j:
-                continue
-            else:
-                temp, _ = add_projections(x, cluster_points_temp[j], 2)
-                x = temp.clone()
-        cluster_points_temp[i] = x
-        # print(x.shape)
-    start = time.time()
-    X_init = cluster_points_temp[0].clone().to(device)
-    shape_list = [Y.shape[0] for Y in cluster_points_temp]
-    b_list_temp = TT([ot.unif(m) for m in shape_list], device = device)
-    # new_centroid, _ = solve_OT_barycenter_fixed_point(
-    #     X_init, cluster_points, order_p, b_list, cost_list, lambda y: B(y, order_p, order_q), max_its=its_bar, log=True, stop_threshold=0.)
-    new_centroid, _ = solve_OT_barycenter_fixed_point(
-        X_init, cluster_points_temp, b_list_temp, cost_list, lambda y: B_analytic(y, 2, 2), max_its=5, log=True, stop_threshold=0.)
-    end = time.time()
+        cluster_points_temp = [x.clone().to(device) for x in cluster_points]
+        cost_list = [lambda x, y: p_norm_q_cost_matrix(x, y, 2, 2)] * K
+        for i in range(K):
+            x = cluster_points_temp[i].clone().to(device)
+            # print(x.shape)
+            for j in range(K):
+                if i == j:
+                    continue
+                else:
+                    temp, _ = add_projections(x, cluster_points_temp[j], 2)
+                    x = temp.clone()
+            cluster_points_temp[i] = x
+            # print(x.shape)
+        start = time.time()
+        X_init = cluster_points_temp[0].clone().to(device)
+        shape_list = [Y.shape[0] for Y in cluster_points_temp]
+        b_list_temp = TT([ot.unif(m) for m in shape_list], device = device)
+        # new_centroid, _ = solve_OT_barycenter_fixed_point(
+        #     X_init, cluster_points, order_p, b_list, cost_list, lambda y: B(y, order_p, order_q), max_its=its_bar, log=True, stop_threshold=0.)
+        new_centroid, _ = solve_OT_barycenter_fixed_point(
+            X_init, cluster_points_temp, b_list_temp, cost_list, lambda y: B_analytic(y, 2, q), max_its=5, log=True, stop_threshold=0.)
+        end = time.time()
 
-    length = end - start
+        length = end - start
 
-    print(f"Running time arithmetic mean when m = {K}: {length} seconds")
+        print(f"Running time computing arithmetic mean when m = {K}: {length} seconds")
