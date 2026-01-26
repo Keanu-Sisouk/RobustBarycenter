@@ -39,15 +39,15 @@ indices_list_for_input = [0,1,2,3,4,5,6,7,8,9,10,11]
 
 Y_list = TT([np.load("IsabelMinThreshNew"+str(i)+".npy") for i in indices_list_for_input], device=device)
 for Y in Y_list:
-    Y = Y[Y[:,1]-Y[:,0] > 0.015*(Y[0,1]-Y[0,0])]
+    Y = Y[Y[:,1]-Y[:,0] > 0.05*(Y[0,1]-Y[0,0])]
     print(Y.shape)
 
 Y_list_new = []
 for Y in Y_list:
-    # Y_list_new.append(Y[Y[:,1]-Y[:,0] > 0.05*(Y[0,1]-Y[0,0])])
-    Y_list_new.append(Y[Y[:,1]-Y[:,0] > 0.*(Y[0,1]-Y[0,0])])
-m_list = [Y.shape[0] for Y in Y_list]
-b_list = TT([ot.unif(m) for m in m_list], device = device)
+    Y_list_new.append(Y[Y[:,1]-Y[:,0] > 0.05*(Y[0,1]-Y[0,0])])
+    # Y_list_new.append(Y[Y[:,1]-Y[:,0] > 0.*(Y[0,1]-Y[0,0])])
+m_list_new = [Y.shape[0] for Y in Y_list_new]
+b_list_new = TT([ot.unif(m) for m in m_list_new], device = device)
 # a = TT(ot.unif(n), device = device)
 # Y_list_new = TT(Y_list_new)
 
@@ -64,7 +64,7 @@ def p_norm_q_cost_matrix(u, v, order_p, order_q):
     return dist
 
 # fonction B alternative qui n'utilise pas pytorch, seulement pour p=2
-def B2(y, order_p, order_q, its=1050, lr=2, log=False, stop_threshold=1e-4):
+def B2(y, order_p, order_q, its=1050, lr=2, log=False, stop_threshold=1e-20):
     """
     Computes the barycenter images for candidate points x (n, d) and
     measure supports y: List(n, d_k).
@@ -120,15 +120,17 @@ def B(y, order_p, order_q, its=250, lr=1, log=False, stop_threshold=1e-20):
     opt = Adam([x], lr=lr)
     exit_status = 'unknown'
     try:
-        for _ in range(its):
+        for epoch in range(its):
             opt.zero_grad()
             loss = torch.sum(C(x, y, order_p, order_q))
             loss.backward()
             opt.step()
             loss_list.append(loss.item())
+            print(epoch)
             if stop_threshold > loss_list[-2] - loss_list[-1] >= 0:
                 exit_status = 'Local optimum'
                 raise StoppingCriterionReached
+            
         exit_status = 'Max iterations reached'
         raise StoppingCriterionReached
     except StoppingCriterionReached:

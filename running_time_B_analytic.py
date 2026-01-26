@@ -47,8 +47,10 @@ b_list = TT([ot.unif(m) for m in m_list], device = device)
 Y_list_new = []
 for Y in Y_list:
     Y_list_new.append(Y[Y[:,1]-Y[:,0] > 0.05*(Y[0,1]-Y[0,0])])
-m_list = [Y.shape[0] for Y in Y_list]
-b_list = TT([ot.unif(m) for m in m_list], device = device)
+
+
+m_list_new = [Y.shape[0] for Y in Y_list_new]
+b_list = TT([ot.unif(m) for m in m_list_new], device = device)
 
 def p_norm_q_cost_matrix(u, v, order_p, order_q):
     dist= torch.sum(torch.abs(u[:, None, :] - v[None, :, :])**order_p, axis=-1)**(order_q / order_p)
