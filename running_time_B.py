@@ -148,7 +148,6 @@ def B_analytic(y, order_p, order_q, its=250, lr=1, log=False, stop_threshold=1e-
         x = x + (1/K)*y[k]
     return x
 
-
 def C(x, y, order_p, order_q):
     """
     Computes the ground barycenter cost for candidate points x (n, d) and
@@ -178,6 +177,48 @@ def C(x, y, order_p, order_q):
     return out
 
 data = []
+
+for q in [2]:
+    K_number = [4,6,8,10,12]
+    row = []
+    for K in K_number:
+        s = 12 - K
+        # if K == 6:
+        #     s = 6
+        # else:
+        #     s = 8
+
+        cluster_points = [Y_list_new[j].clone().to(device) for j in range(s,12)]
+
+        cluster_points_temp = [x.clone().to(device) for x in cluster_points]
+        cost_list = [lambda x, y: p_norm_q_cost_matrix(x, y, 2, 2)] * K
+        for i in range(K):
+            x = cluster_points_temp[i].clone().to(device)
+            # print(x.shape)
+            for j in range(K):
+                if i == j:
+                    continue
+                else:
+                    temp, _ = add_projections(x, cluster_points_temp[j], 2)
+                    x = temp.clone()
+            cluster_points_temp[i] = x
+            # print(x.shape)
+        start = time.time()
+        X_init = cluster_points_temp[0].clone().to(device)
+        shape_list = [Y.shape[0] for Y in cluster_points_temp]
+        b_list_temp = TT([ot.unif(m) for m in shape_list], device = device)
+        # new_centroid, _ = solve_OT_barycenter_fixed_point(
+        #     X_init, cluster_points, order_p, b_list, cost_list, lambda y: B(y, order_p, order_q), max_its=its_bar, log=True, stop_threshold=0.)
+        new_centroid, _ = solve_OT_barycenter_fixed_point(
+            X_init, cluster_points_temp, b_list_temp, cost_list, lambda y: B_analytic(y, 2, q), max_its=5, log=True, stop_threshold=0.)
+        end = time.time()
+
+        length = end - start
+        row.append(length)
+    data.append(row)
+        # print(f"Running time arithmetic mean when m = {K}: {length} seconds")
+        # print("  ")
+
 for q in [2,1.8,1.6,1.4,1.2]:
     K_number = [4,6,8,10,12]
     # print(f"When q equals to {q}")
@@ -216,7 +257,7 @@ for q in [2,1.8,1.6,1.4,1.2]:
         # print(f"Running time b_{q} when m = {K}: {length} seconds")
 
 
-df = pds.DataFrame(np.array(data), index = ["b_2", "b_1.8", "b_1.6", "b_1.4", "b_1.2"],
+df = pds.DataFrame(np.array(data), index = ["Arithmetic Mean","b_2", "b_1.8", "b_1.6", "b_1.4", "b_1.2"],
                     columns = ["m = 4", "m = 6", "m = 8" , "m = 10", "m = 12"])
 
 print(df)
