@@ -14,6 +14,7 @@ IEEE Transactions on Visualization and Computer Graphics, 2026.
 
 # Requirements
 
+The python version used for the experiments is Python3.12.
 To install the required packages:
 ```bash
 pip install -r requirements.txt

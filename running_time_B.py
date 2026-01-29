@@ -10,7 +10,7 @@ import torch
 from torch.optim import Adam
 from matplotlib import cm
 from tqdm import tqdm
-from gudhi.wasserstein import wasserstein_distance
+# from gudhi.wasserstein import wasserstein_distance
 import itertools
 import time
 import pandas as pds
