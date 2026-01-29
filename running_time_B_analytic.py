@@ -13,6 +13,7 @@ from tqdm import tqdm
 # from gudhi.wasserstein import wasserstein_distance
 import itertools
 import time
+import pandas as pds
 
 np.random.seed(42)
 torch.manual_seed(42)
@@ -37,17 +38,18 @@ indices_list_for_input = [0,1,2,3,4,5,6,7,8,9,10,11]
 
 
 
+
 Y_list = TT([np.load("IsabelMinThreshNew"+str(i)+".npy") for i in indices_list_for_input], device=device)
 for Y in Y_list:
-    Y = Y[Y[:,1]-Y[:,0] > 0.01*(Y[0,1]-Y[0,0])]
-    # print(Y.shape)
-m_list = [Y.shape[0] for Y in Y_list]
-b_list = TT([ot.unif(m) for m in m_list], device = device)
-# a = TT(ot.unif(n), device = device)
+    Y = Y[Y[:,1]-Y[:,0] > 0.05*(Y[0,1]-Y[0,0])]
+    print(Y.shape)
+
 Y_list_new = []
 for Y in Y_list:
     Y_list_new.append(Y[Y[:,1]-Y[:,0] > 0.05*(Y[0,1]-Y[0,0])])
-
+    # Y_list_new.append(Y[Y[:,1]-Y[:,0] > 0.*(Y[0,1]-Y[0,0])])
+m_list_new = [Y.shape[0] for Y in Y_list_new]
+b_list_new = TT([ot.unif(m) for m in m_list_new], device = device)
 
 m_list_new = [Y.shape[0] for Y in Y_list_new]
 b_list = TT([ot.unif(m) for m in m_list_new], device = device)
@@ -175,9 +177,10 @@ def C(x, y, order_p, order_q):
         out += (1 / K) * cost
     return out
 
-
-for q in [2,1.8,1.6,1.4,1.2]:
+data = []
+for q in [2]:
     K_number = [4,6,8,10,12]
+    row = []
     for K in K_number:
         s = 12 - K
         # if K == 6:
@@ -211,5 +214,13 @@ for q in [2,1.8,1.6,1.4,1.2]:
         end = time.time()
 
         length = end - start
+        row.append(length)
+    data.append(row)
+        # print(f"Running time arithmetic mean when m = {K}: {length} seconds")
+        # print("  ")
 
-        print(f"Running time computing arithmetic mean when m = {K}: {length} seconds")
+df = pds.DataFrame(np.array(data), index = ["Arithmetic Mean"],
+                    columns = ["m = 4", "m = 6", "m = 8" , "m = 10", "m = 12"])
+
+print(df)
+    

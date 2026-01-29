@@ -13,6 +13,7 @@ from tqdm import tqdm
 from gudhi.wasserstein import wasserstein_distance
 import itertools
 import time
+import pandas as pds
 
 np.random.seed(42)
 torch.manual_seed(42)
@@ -126,7 +127,7 @@ def B(y, order_p, order_q, its=250, lr=1, log=False, stop_threshold=1e-20):
             loss.backward()
             opt.step()
             loss_list.append(loss.item())
-            print(epoch)
+            # print(epoch)
             if stop_threshold > loss_list[-2] - loss_list[-1] >= 0:
                 exit_status = 'Local optimum'
                 raise StoppingCriterionReached
@@ -176,15 +177,14 @@ def C(x, y, order_p, order_q):
         out += (1 / K) * cost
     return out
 
-
+data = []
 for q in [2,1.8,1.6,1.4,1.2]:
     K_number = [4,6,8,10,12]
+    # print(f"When q equals to {q}")
+    row = []
     for K in K_number:
         s = 12 - K
-        # if K == 6:
-        #     s = 6
-        # else:
-        #     s = 8
+
 
         cluster_points = [Y_list_new[j].clone().to(device) for j in range(s,12)]
 
@@ -192,7 +192,6 @@ for q in [2,1.8,1.6,1.4,1.2]:
         cost_list = [lambda x, y: p_norm_q_cost_matrix(x, y, 2, 2)] * K
         for i in range(K):
             x = cluster_points_temp[i].clone().to(device)
-            # print(x.shape)
             for j in range(K):
                 if i == j:
                     continue
@@ -200,7 +199,7 @@ for q in [2,1.8,1.6,1.4,1.2]:
                     temp, _ = add_projections(x, cluster_points_temp[j], 2)
                     x = temp.clone()
             cluster_points_temp[i] = x
-            # print(x.shape)
+
         start = time.time()
         X_init = cluster_points_temp[0].clone().to(device)
         shape_list = [Y.shape[0] for Y in cluster_points_temp]
@@ -212,5 +211,13 @@ for q in [2,1.8,1.6,1.4,1.2]:
         end = time.time()
 
         length = end - start
+        row.append(length)
+    data.append(row)
+        # print(f"Running time b_{q} when m = {K}: {length} seconds")
 
-        print(f"Running time b_{q} when m = {K}: {length} seconds")
+
+df = pds.DataFrame(np.array(data), index = ["b_2", "b_1.8", "b_1.6", "b_1.4", "b_1.2"],
+                    columns = ["m = 4", "m = 6", "m = 8" , "m = 10", "m = 12"])
+
+print(df)
+    
