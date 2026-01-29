@@ -22,14 +22,14 @@ pip install -r requirements.txt
 # Get the result
 
 The python files generates the running time reported in our time table.
-Beware that the experiments were run using Pytorch on an NVIDA GPU, so associated drivers have to be installed.
+Beware that the experiments were run using Pytorch on an NVIDA GPU, so associated drivers have to be installed. The specs are specified in the associated paper, but we remind that the GPU used is a NVIDIA RTX 260 Q-max (mobile) with 6 GB VRAM dedicated.
 
-The first file `running_time_B_analytic.py` gives the two running times when using the arithmetic mean:
+The first file `running_time_B_analytic.py` gives the running times when using the arithmetic mean:
 ```bash
 python3 running_time_B_analytic.py
 ```
 
-The second file `running_time_B.py` gives the two running times when using Pytorch optimizer to compute the ground barycenter:
+The second file `running_time_B.py` gives the running times when using Pytorch optimizer to compute the ground barycenter:
 ```bash
 python3 running_time_B.py
 ```
